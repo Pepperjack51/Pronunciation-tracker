@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Pronunciation Practice Tracker</title>
@@ -14,6 +14,9 @@
     #total, #goal { font-weight: bold; }
     .highlight { background-color: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-top: 10px; }
     .instructions { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+    .buttons { margin: 10px 0; }
+    button { margin-right: 10px; padding: 8px 16px; border: none; border-radius: 4px; background-color: #0d3b66; color: white; cursor: pointer; }
+    button:hover { background-color: #0b2e50; }
   </style>
 </head>
 <body>
@@ -21,13 +24,18 @@
   <h2>Pronunciation Practice Tracker</h2>
 
   <div class="instructions">
-    <strong>Instructions:</strong> Check off the tasks you complete each day. Your points will be added automatically. 
-    Set a goal at the top and try to meet it by the end of the week!
+    <strong>Instructions:</strong> Check off the tasks you complete each day. Your points will be added automatically.
+    Set a goal at the top and try to meet it by the end of the week! Click "Save Progress" to remember your results for next time.
   </div>
 
   <label>🎯 Your Goal: <input type="number" id="goalInput" /></label>
   <div style="margin-top: 10px;">Total Score: <span id="total">0</span></div>
   <div id="message" class="highlight" style="display: none;">🎯 You reached your goal!</div>
+
+  <div class="buttons">
+    <button onclick="saveProgress()">💾 Save Progress</button>
+    <button onclick="clearProgress()">🗑️ Clear Progress</button>
+  </div>
 
   <table>
     <thead>
@@ -71,6 +79,7 @@
         checkbox.type = "checkbox";
         checkbox.dataset.points = task.points;
         checkbox.dataset.row = rowIndex;
+        checkbox.dataset.day = day;
         checkbox.addEventListener("change", calculateTotals);
         cell.appendChild(checkbox);
         row.appendChild(cell);
@@ -103,7 +112,42 @@
       }
     }
 
+    function saveProgress() {
+      const checkboxes = document.querySelectorAll("input[type='checkbox']");
+      const savedState = Array.from(checkboxes).map(cb => cb.checked);
+      const goal = document.getElementById("goalInput").value;
+      localStorage.setItem("trackerProgress", JSON.stringify(savedState));
+      localStorage.setItem("trackerGoal", goal);
+      alert("✅ Progress saved!");
+    }
+
+    function loadProgress() {
+      const savedState = JSON.parse(localStorage.getItem("trackerProgress"));
+      const savedGoal = localStorage.getItem("trackerGoal");
+      if (savedState && savedState.length) {
+        const checkboxes = document.querySelectorAll("input[type='checkbox']");
+        checkboxes.forEach((cb, index) => {
+          cb.checked = savedState[index];
+        });
+      }
+      if (savedGoal) {
+        document.getElementById("goalInput").value = savedGoal;
+      }
+      calculateTotals();
+    }
+
+    function clearProgress() {
+      if (confirm("Are you sure you want to clear your progress?")) {
+        localStorage.removeItem("trackerProgress");
+        localStorage.removeItem("trackerGoal");
+        document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+        document.getElementById("goalInput").value = "";
+        calculateTotals();
+      }
+    }
+
     document.getElementById("goalInput").addEventListener("input", calculateTotals);
+    window.onload = loadProgress;
   </script>
 
 </body>

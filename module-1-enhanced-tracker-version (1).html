@@ -1,0 +1,115 @@
+
+<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa;">
+<h2>🌟 Module 1 – Intro to Vowels & Essential Sounds</h2>
+<p>Welcome to Week 1! This week is all about tuning your ears to key vowel sounds and learning how American English rhythm begins. Take your time and try to complete 2–3 lessons. Slow, focused practice is the goal! As you practice, mark your progress below.</p>
+<hr />
+<h3>🎯 Your Weekly Practice Tracker</h3>
+
+<div>
+  <label>Vowels Score:</label>
+  <input type="number" id="vowels" min="0" max="200"><br><br>
+  <label>Consonants Score:</label>
+  <input type="number" id="consonants" min="0" max="200"><br><br>
+  <label>Stress & Rhythm Score:</label>
+  <input type="number" id="stress" min="0" max="150"><br><br>
+  <label>Connected Speech Score:</label>
+  <input type="number" id="connected" min="0" max="150"><br><br>
+</div>
+
+<div class="score-display" id="totalScore">Total Score: 0 / 700</div>
+<div class="badge" id="badgeDisplay" style="font-size: 22px; color: #d35400; display: none;">🏅 You earned a Fluency Star Badge!</div>
+<div class="badge" id="cumulativeDisplay" style="font-size: 20px; color: #2c3e50;"></div>
+<button class="reset-btn" onclick="clearProgress()" style="margin-top: 20px; padding: 10px 15px; background: #e74c3c; color: #fff; border: none; cursor: pointer;">🔁 Clear Progress & Start Over</button>
+
+<script>
+  const fields = ['vowels', 'consonants', 'stress', 'connected'];
+
+  function loadProgress() {
+    let total = 0;
+    fields.forEach(id => {
+      const saved = localStorage.getItem(id);
+      if (saved) {
+        document.getElementById(id).value = saved;
+        total += parseInt(saved);
+      }
+    });
+    updateScoreDisplay(total);
+  }
+
+  function updateScoreDisplay(total) {
+    document.getElementById('totalScore').textContent = `Total Score: ${total} / 700`;
+    const badge = document.getElementById('badgeDisplay');
+    if (total >= 500) {
+      badge.style.display = 'block';
+      updateCumulativeBadges();
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function updateCumulativeBadges() {
+    let badges = parseInt(localStorage.getItem('badgeCount')) || 0;
+    if (!localStorage.getItem('badgeEarnedThisTracker')) {
+      badges += 1;
+      localStorage.setItem('badgeCount', badges);
+      localStorage.setItem('badgeEarnedThisTracker', 'true');
+    }
+    document.getElementById('cumulativeDisplay').textContent =
+      `🏆 Total Badges Earned Across Modules: ${badges}`;
+  }
+
+  function saveProgress() {
+    let total = 0;
+    fields.forEach(id => {
+      const val = document.getElementById(id).value;
+      localStorage.setItem(id, val);
+      total += parseInt(val) || 0;
+    });
+    updateScoreDisplay(total);
+  }
+
+  function clearProgress() {
+    if (confirm("Are you sure you want to clear your progress for this tracker?")) {
+      fields.forEach(id => localStorage.removeItem(id));
+      localStorage.removeItem('badgeEarnedThisTracker');
+      location.reload();
+    }
+  }
+
+  fields.forEach(id => {
+    document.getElementById(id).addEventListener('input', saveProgress);
+  });
+
+  loadProgress();
+  if (parseInt(localStorage.getItem('badgeCount')) > 0) {
+    document.getElementById('cumulativeDisplay').textContent =
+      `🏆 Total Badges Earned Across Modules: ${localStorage.getItem('badgeCount')}`;
+  }
+</script>
+
+<hr />
+<h3>📘 Focus Areas This Week</h3>
+<ul>
+  <li>✔️ Introduction to vowel sounds</li>
+  <li>✔️ The most common English vowel: /ə/ "uh" sound</li>
+  <li>✔️ /iy/ vs /ɪ/ — the difference between “sheep” and “ship”</li>
+</ul>
+<hr />
+<h3>📚 This Week’s Lessons</h3>
+<p><strong>🔹 Lesson 1 – Introduction to Vowels</strong><br />
+Learn why vowel sounds are so important and how they affect clarity.</p>
+
+<p><strong>🔹 Lesson 2 – The “UH” Sound /ə/ (Stressed & Unstressed)</strong><br />
+Explore the most frequent vowel sound in English, including how it changes in weak syllables.</p>
+
+<p><strong>🔹 Lesson 3 – /iy/ vs /ɪ/: “Sheep” vs “Ship”</strong><br />
+Practice with minimal pairs and listening exercises to tell these apart.</p>
+<hr />
+<h3>📝 Reflection</h3>
+<p>Write your response in the tracker:</p>
+<ul>
+  <li>Which sounds were the easiest? Which were hardest?</li>
+  <li>Where did you hear these sounds in real life this week?</li>
+  <li>What surprised you about how vowels are used in English?</li>
+</ul>
+</div>

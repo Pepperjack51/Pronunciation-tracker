@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pronunciation Practice Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background: #0d3b66; color: white; }
+    input[type="checkbox"] { transform: scale(1.2); }
+    input[type="number"] { width: 80px; }
+    #total, #goal { font-weight: bold; }
+    .highlight { background-color: #d4edda; color: #155724; padding: 20px; border-radius: 8px; margin-top: 20px; font-size: 1.3em; text-align: center; }
+    .instructions { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+    .buttons { margin: 10px 0; }
+    button { margin-right: 10px; padding: 8px 16px; border: none; border-radius: 4px; background-color: #0d3b66; color: white; cursor: pointer; }
+    button:hover { background-color: #0b2e50; }
+    textarea { width: 100%; height: 100px; margin-top: 10px; padding: 10px; font-family: Arial; }
+    #badgeIcons { font-size: 3em; margin-top: 10px; line-height: 1.5; }
+    #savedMessage { display: none; background: #d1ecf1; color: #0c5460; padding: 12px; border-radius: 6px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Pronunciation Practice Tracker</h2>
+
+  <div class="instructions">
+    <strong>Instructions:</strong> Check off the tasks you complete each day. Your points will be added automatically.
+    Set a goal at the top and try to meet it by the end of the week! Click "Save Progress" to remember your goal and reflection.
+  </div>
+
+  <label>🎯 Your Goal: <input type="number" id="goalInput" /></label>
+  <div style="margin-top: 10px;">Total Score: <span id="total">0</span></div>
+  <div id="message" class="highlight" style="display: none;"></div>
+
+  <div class="buttons">
+    <button onclick="saveProgress()">💾 Save Progress</button>
+    <button onclick="clearProgress()">🗑️ Clear Progress</button>
+    <button onclick="printProgress()">🖨️ Print Progress</button>
+    <button onclick="submitToTeacher()">📧 Submit to Teacher</button>
+  </div>
+
+  <div id="savedMessage">✅ Your progress has been saved!</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>Mon</th>
+        <th>Tue</th>
+        <th>Wed</th>
+        <th>Thu</th>
+        <th>Fri</th>
+        <th>Sat</th>
+        <th>Sun</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="trackerTable"></tbody>
+  </table>
+
+  <h3>📝 Reflection / Journal</h3>
+  <textarea id="reflection" placeholder="What went well this week? What do you want to improve?"></textarea>
+
+  <div class="highlight" id="badgeDisplay" style="display: none;"></div>
+  <div class="highlight" id="cumulativeDisplay" style="display: none;">
+    <div>🏆 Total Badges Earned Across Modules: <span id="badgeCount">0</span></div>
+    <div id="badgeIcons"></div>
+  </div>
+
+  <script>
+    const tasks = [
+      { name: "Video Lesson (20 pts)", points: 20 },
+      { name: "Listening Practice (10 pts)", points: 10 },
+      { name: "Read Aloud (10 pts)", points: 10 },
+      { name: "Quiz or Exercise (20 pts)", points: 20 },
+      { name: "Practice in the Community (40 pts)", points: 40 }
+    ];
+
+    const moduleLevel = 1;
+    const levelBadgeIcons = ["⭐", "🎖️", "🏅", "🏆", "🎯"];
+    const thisModuleBadge = levelBadgeIcons[moduleLevel - 1];
+
+    const trackerTable = document.getElementById("trackerTable");
+
+    tasks.forEach((task, rowIndex) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td>${task.name}</td>`;
+      let totalCell = document.createElement("td");
+      totalCell.id = `rowTotal-${rowIndex}`;
+      totalCell.textContent = "0";
+      for (let day = 0; day < 7; day++) {
+        const cell = document.createElement("td");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.dataset.points = task.points;
+        checkbox.dataset.row = rowIndex;
+        checkbox.dataset.day = day;
+        checkbox.addEventListener("change", calculateTotals);
+        cell.appendChild(checkbox);
+        row.appendChild(cell);
+      }
+      row.appendChild(totalCell);
+      trackerTable.appendChild(row);
+    });
+
+    function calculateTotals() {
+      let grandTotal = 0;
+      tasks.forEach((task, rowIndex) => {
+        const checkboxes = document.querySelectorAll(`input[data-row="${rowIndex}"]`);
+        let rowTotal = 0;
+        checkboxes.forEach(cb => {
+          if (cb.checked) rowTotal += parseInt(cb.dataset.points);
+        });
+        document.getElementById(`rowTotal-${rowIndex}`).textContent = rowTotal;
+        grandTotal += rowTotal;
+      });
+
+      document.getElementById("total").textContent = grandTotal;
+
+      const goal = parseInt(document.getElementById("goalInput").value);
+      const message = document.getElementById("message");
+      if (!isNaN(goal) && grandTotal >= goal) {
+        message.style.display = "block";
+        message.innerHTML = `${thisModuleBadge} You reached your goal and earned a badge!`;
+      } else {
+        message.style.display = "none";
+      }
+
+      if (grandTotal >= 500) {
+        document.getElementById("badgeDisplay").style.display = "block";
+        document.getElementById("badgeDisplay").innerHTML = `${thisModuleBadge} <strong>You earned a Fluency Badge for this module!</strong>`;
+        updateCumulativeBadges();
+      } else {
+        document.getElementById("badgeDisplay").style.display = "none";
+      }
+    }
+
+    function saveProgress() {
+      const goal = document.getElementById("goalInput").value;
+      const reflection = document.getElementById("reflection").value;
+      localStorage.setItem("trackerGoal", goal);
+      localStorage.setItem("trackerReflection", reflection);
+      document.getElementById("savedMessage").style.display = "block";
+      setTimeout(() => { document.getElementById("savedMessage").style.display = "none"; }, 3000);
+    }
+
+    function loadProgress() {
+      const savedGoal = localStorage.getItem("trackerGoal");
+      const savedReflection = localStorage.getItem("trackerReflection");
+      if (savedGoal) document.getElementById("goalInput").value = savedGoal;
+      if (savedReflection) document.getElementById("reflection").value = savedReflection;
+      renderBadgeIcons();
+      calculateTotals();
+    }
+
+    function clearProgress() {
+      if (confirm("Are you sure you want to clear your progress?")) {
+        document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+        document.getElementById("goalInput").value = "";
+        document.getElementById("reflection").value = "";
+        calculateTotals();
+      }
+    }
+
+    function printProgress() {
+      window.print();
+    }
+
+    function submitToTeacher() {
+      const total = document.getElementById("total").textContent;
+      const goal = document.getElementById("goalInput").value;
+      const reflection = document.getElementById("reflection").value;
+      const subject = encodeURIComponent("Pronunciation Tracker Submission");
+      const body = encodeURIComponent(`Hello,%0D%0A%0D%0ATotal Score: ${total}%0D%0AGoal: ${goal}%0D%0AReflection:%0D%0A${reflection}%0D%0A`);
+      window.location.href = `mailto:info@eslspeechconnect.com?subject=${subject}&body=${body}`;
+    }
+
+    function updateCumulativeBadges() {
+      let count = parseInt(localStorage.getItem("badgeCount")) || 0;
+      count += 1;
+      localStorage.setItem("badgeCount", count);
+      renderBadgeIcons();
+    }
+
+    function renderBadgeIcons() {
+      const count = parseInt(localStorage.getItem("badgeCount")) || 0;
+      const iconRow = document.getElementById("badgeIcons");
+      const badgeCount = document.getElementById("badgeCount");
+      document.getElementById("cumulativeDisplay").style.display = "block";
+      badgeCount.textContent = count;
+      iconRow.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        iconRow.innerHTML += levelBadgeIcons[i % levelBadgeIcons.length] + " ";
+      }
+    }
+
+    document.getElementById("goalInput").addEventListener("input", calculateTotals);
+    window.onload = () => {
+      loadProgress();
+      document.querySelectorAll("input[type='checkbox']").forEach(cb => cb.checked = false);
+      calculateTotals();
+    };
+  </script>
+
+</body>
+</html>
